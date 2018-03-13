@@ -37,13 +37,25 @@ class Cat : Command() {
     override val desc = "Get a random cat"
 
     override fun run(ctx: Context) {
-        Http.get("https://random.cat/meow").thenAccept { res ->
+        // TODO switch back when random.cat works again
+        /*Http.get("https://random.cat/meow").thenAccept { res ->
             val json = JSONObject(res.body()!!.string())
 
             ctx.send(json.getString("file"))
             res.close()
         }.thenApply {}.exceptionally {
             ctx.logger.error("Error while trying to get a random cat from random.cat", it)
+            ctx.sendError(it)
+            Sentry.capture(it)
+        }*/
+
+        Http.get("https://nekos.life/api/v2/img/meow").thenAccept { res ->
+            val json = JSONObject(res.body()!!.string())
+
+            ctx.send(json.getString("url"))
+            res.close()
+        }.thenApply {}.exceptionally {
+            ctx.logger.error("Error while trying to get a random cat from nekos.life", it)
             ctx.sendError(it)
             Sentry.capture(it)
         }

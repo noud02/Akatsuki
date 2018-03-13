@@ -26,54 +26,24 @@
 package me.noud02.akatsuki.commands
 
 import io.sentry.Sentry
-import me.noud02.akatsuki.annotations.Argument
 import me.noud02.akatsuki.annotations.Load
 import me.noud02.akatsuki.entities.Command
 import me.noud02.akatsuki.entities.Context
 import me.noud02.akatsuki.utils.Http
-import net.dv8tion.jda.core.EmbedBuilder
-import okhttp3.HttpUrl
 import org.json.JSONObject
 
 @Load
-@Argument("term", "string")
-class Urban : Command() {
-    override val desc = "Search on the urban dictionary!"
+class Nekomimi : Command() {
+    override val desc = "Get a random catgirl"
 
     override fun run(ctx: Context) {
-        Http.get(HttpUrl.Builder().apply {
-            scheme("https")
-            host("api.urbandictionary.com")
-            addPathSegment("v0")
-            addPathSegment("define")
-            addQueryParameter("term", ctx.args["term"] as String)
-        }.build()).thenAccept { res ->
+        Http.get("https://nekos.life/api/v2/img/neko").thenAccept { res ->
             val json = JSONObject(res.body()!!.string())
 
-            if (json.getString("result_type") == "no_results") {
-                return@thenAccept ctx.send(ctx.lang.getString("no_results"))
-            }
-
-            val list = json.getJSONArray("list")
-
-            if (list.count() == 0) {
-                return@thenAccept ctx.send(ctx.lang.getString("no_results"))
-            }
-
-            val item = list.getJSONObject(0)
-
-            val embed = EmbedBuilder().apply {
-                setAuthor(item.getString("author"))
-                setTitle(item.getString("word"), item.getString("permalink"))
-                descriptionBuilder.append(item.getString("definition"))
-                descriptionBuilder.append("\n\n${item.getString("example")}")
-                setFooter("${item.getInt("thumbs_up")} \uD83D\uDC4D | ${item.getInt("thumbs_down")} \uD83D\uDC4E", null)
-            }
-
-            ctx.send(embed.build())
+            ctx.send(json.getString("url"))
             res.close()
         }.thenApply {}.exceptionally {
-            ctx.logger.error("Error while trying to get definition from urban dictionary", it)
+            ctx.logger.error("Error while trying to get a random catgirl from nekos.life", it)
             ctx.sendError(it)
             Sentry.capture(it)
         }

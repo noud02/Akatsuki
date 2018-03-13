@@ -36,44 +36,57 @@ import okhttp3.HttpUrl
 import org.json.JSONObject
 
 @Load
-@Argument("term", "string")
-class Urban : Command() {
-    override val desc = "Search on the urban dictionary!"
+@Argument("query", "string")
+class StackOverflow : Command() {
+    override val desc = "Search for answers on StackOverflow"
 
     override fun run(ctx: Context) {
+        val query = ctx.args["query"] as String
+
         Http.get(HttpUrl.Builder().apply {
             scheme("https")
-            host("api.urbandictionary.com")
-            addPathSegment("v0")
-            addPathSegment("define")
-            addQueryParameter("term", ctx.args["term"] as String)
+            host("api.stackexchange.com")
+            addPathSegments("2.2/search/advanced")
+            addQueryParameter("order", "asc")
+            addQueryParameter("sort", "relevance")
+            addQueryParameter("site", "stackoverflow")
+            addQueryParameter("q", query)
         }.build()).thenAccept { res ->
             val json = JSONObject(res.body()!!.string())
 
-            if (json.getString("result_type") == "no_results") {
+            val items = json.getJSONArray("items")
+
+            if (items.count() == 0) {
                 return@thenAccept ctx.send(ctx.lang.getString("no_results"))
             }
 
-            val list = json.getJSONArray("list")
-
-            if (list.count() == 0) {
-                return@thenAccept ctx.send(ctx.lang.getString("no_results"))
-            }
-
-            val item = list.getJSONObject(0)
+            val item = items.getJSONObject(Math.floor(Math.random() * items.count()).toInt())
 
             val embed = EmbedBuilder().apply {
-                setAuthor(item.getString("author"))
-                setTitle(item.getString("word"), item.getString("permalink"))
-                descriptionBuilder.append(item.getString("definition"))
-                descriptionBuilder.append("\n\n${item.getString("example")}")
-                setFooter("${item.getInt("thumbs_up")} \uD83D\uDC4D | ${item.getInt("thumbs_down")} \uD83D\uDC4E", null)
+                val owner = item.getJSONObject("owner")
+                val tags = item.getJSONArray("tags")
+                val answered = item.getBoolean("is_answered")
+
+                setTitle(item.getString("title"), item.getString("link"))
+                setAuthor(
+                        owner.getString("display_name"),
+                        owner.getString("link"),
+                        owner.getString("profile_image")
+                )
+                setColor(if (answered) 0x4CAF50 else 0xF44336)
+
+                descriptionBuilder.append("**Tags**: ${tags.joinToString { it.toString() }}\n")
+
+                if (answered && item.has("accepted_answer_id")) {
+                    descriptionBuilder.append("\n[Answer](https://stackoverflow.com/a/${item.getInt("accepted_answer_id")})")
+                }
             }
 
             ctx.send(embed.build())
+
             res.close()
         }.thenApply {}.exceptionally {
-            ctx.logger.error("Error while trying to get definition from urban dictionary", it)
+            ctx.logger.error("Error while trying to get posts from StackOverflow", it)
             ctx.sendError(it)
             Sentry.capture(it)
         }

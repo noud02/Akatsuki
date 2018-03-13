@@ -86,6 +86,11 @@ fun Guild.addStar(msg: Message, user: User) {
                 embed.apply {
                     setAuthor(msg.author.name, null, msg.author.avatarUrl)
                     setColor(getStarColor(star[Starboard.stargazers].size + 1))
+
+                    if (msg.attachments.isNotEmpty()) {
+                        setImage(msg.attachments.first().url)
+                    }
+
                     descriptionBuilder.append(msg.contentRaw)
                 }
 
@@ -108,6 +113,11 @@ fun Guild.addStar(msg: Message, user: User) {
                 embed.apply {
                     setAuthor(msg.author.name, null, msg.author.avatarUrl)
                     setColor(getStarColor(1))
+
+                    if (msg.attachments.isNotEmpty()) {
+                        setImage(msg.attachments.first().url)
+                    }
+
                     descriptionBuilder.append(msg.contentRaw)
                 }
 
