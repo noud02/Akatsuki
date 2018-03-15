@@ -30,9 +30,7 @@ import io.sentry.Sentry
 import me.aurieh.ares.core.entities.EventWaiter
 import me.aurieh.ares.exposed.async.asyncTransaction
 import me.noud02.akatsuki.db.DatabaseWrapper
-import me.noud02.akatsuki.db.schema.Contracts
-import me.noud02.akatsuki.db.schema.Modlogs
-import me.noud02.akatsuki.db.schema.Reminders
+import me.noud02.akatsuki.db.schema.*
 import me.noud02.akatsuki.extensions.UTF8Control
 import me.noud02.akatsuki.extensions.addStar
 import me.noud02.akatsuki.extensions.log
@@ -45,6 +43,7 @@ import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.audit.ActionType
 import net.dv8tion.jda.core.entities.Game
+import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.guild.GuildBanEvent
@@ -209,17 +208,24 @@ class EventListener : ListenerAdapter() {
     override fun onGuildJoin(event: GuildJoinEvent) {
         logger.info("New guild: ${event.guild.name} (${event.guild.id})")
 
-        /*DatabaseWrapper.getGuildSafe(event.guild).thenApply {}.exceptionally {
-            logger.error("Error while trying to insert guild ${event.guild.name} (${event.guild.id}) in the database!", it)
-            Sentry.capture(it)
-        }*/
         updateStats()
     }
 
     override fun onGuildLeave(event: GuildLeaveEvent) {
         logger.info("Left guild: ${event.guild.name} (${event.guild.id}")
 
-        DatabaseWrapper.remGuild(event.guild.idLong)
+        asyncTransaction(Akatsuki.pool) {
+            Roles.deleteWhere { Roles.guildId.eq(event.guild.idLong) }
+            Modlogs.deleteWhere { Modlogs.guildId.eq(event.guild.idLong) }
+            Restrictions.deleteWhere { Restrictions.guildId.eq(event.guild.idLong) }
+            Scripts.deleteWhere { Scripts.guildId.eq(event.guild.idLong) }
+            Starboard.deleteWhere { Starboard.guildId.eq(event.guild.idLong) }
+            Guilds.deleteWhere { Guilds.id.eq(event.guild.idLong) }
+        }.execute().thenApply {}.exceptionally {
+            logger.error("Error while trying to remove database entries for guild with id ${event.guild.id}", it)
+            Sentry.capture(it)
+        }
+
         updateStats()
     }
 
@@ -262,6 +268,23 @@ class EventListener : ListenerAdapter() {
     }
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {
+        asyncTransaction(Akatsuki.pool) {
+            val roles = Roles.select {
+                Roles.userId.eq(event.user.idLong) and Roles.guildId.eq(event.guild.idLong)
+            }
+
+            for (role in roles) {
+                val id = role[Roles.roleId]
+                val r = event.guild.getRoleById(id)
+
+                if (r != null) {
+                    event.guild.controller.addSingleRoleToMember(event.member, r).queue()
+                }
+            }
+        }.execute().thenApply {}.exceptionally {
+            it.printStackTrace()
+        }
+
         DatabaseWrapper.getGuildSafe(event.guild).thenAccept { storedGuild ->
             val channel = event.guild.getTextChannelById(storedGuild.welcomeChannel ?: return@thenAccept) ?: return@thenAccept
 
@@ -279,17 +302,6 @@ class EventListener : ListenerAdapter() {
 
     override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
         DatabaseWrapper.getGuildSafe(event.guild).thenAccept { storedGuild ->
-            val channel = event.guild.getTextChannelById(storedGuild.welcomeChannel ?: return@thenAccept) ?: return@thenAccept
-
-            if (storedGuild.welcome && storedGuild.leaveMessage.isNotBlank()) {
-                channel.sendMessage(
-                        storedGuild.leaveMessage
-                                .replace("%USER%", event.user.asMention)
-                                .replace("%USERNAME%", event.user.name)
-                                .replace("%SERVER%", event.guild.name)
-                ).queue()
-            }
-
             asyncTransaction(Akatsuki.pool) {
                 if (!storedGuild.modlogs) {
                     return@asyncTransaction
@@ -317,6 +329,17 @@ class EventListener : ListenerAdapter() {
                     it[reason] = audit.reason
                 }
             }.execute()
+
+            val channel = event.guild.getTextChannelById(storedGuild.welcomeChannel ?: return@thenAccept) ?: return@thenAccept
+
+            if (storedGuild.welcome && storedGuild.leaveMessage.isNotBlank()) {
+                channel.sendMessage(
+                        storedGuild.leaveMessage
+                                .replace("%USER%", event.user.asMention)
+                                .replace("%USERNAME%", event.user.name)
+                                .replace("%SERVER%", event.guild.name)
+                ).queue()
+            }
         }
     }
 
@@ -394,6 +417,13 @@ class EventListener : ListenerAdapter() {
                 val modlogs = Modlogs.select { Modlogs.guildId.eq(event.guild.idLong) }
                 val modlogChannel = event.guild.getTextChannelById(storedGuild.modlogChannel ?: return@asyncTransaction) ?: return@asyncTransaction
                 val audit = event.guild.auditLogs.type(ActionType.MEMBER_ROLE_UPDATE).firstOrNull { it.targetId == event.user.id } ?: return@asyncTransaction
+
+                Roles.insert {
+                    it[userId] = event.user.idLong
+                    it[guildId] = event.guild.idLong
+                    it[roleId] = event.roles.first().idLong
+                }
+
                 val case = modlogs.count() + 1
 
                 val msg = modlogChannel.sendMessage("""
@@ -426,6 +456,11 @@ class EventListener : ListenerAdapter() {
                 val modlogs = Modlogs.select { Modlogs.guildId.eq(event.guild.idLong) }
                 val modlogChannel = event.guild.getTextChannelById(storedGuild.modlogChannel ?: return@asyncTransaction) ?: return@asyncTransaction
                 val audit = event.guild.auditLogs.type(ActionType.MEMBER_ROLE_UPDATE).firstOrNull { it.targetId == event.user.id } ?: return@asyncTransaction
+
+                Roles.deleteWhere {
+                    Roles.guildId.eq(event.guild.idLong) and Roles.userId.eq(event.user.idLong) and Roles.roleId.eq(event.roles.first().idLong)
+                }
+
                 val case = modlogs.count() + 1
 
                 val msg = modlogChannel.sendMessage("""

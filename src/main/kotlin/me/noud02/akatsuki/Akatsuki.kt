@@ -71,7 +71,8 @@ class Akatsuki(private val config: Config) {
                     Reminders,
                     Scripts,
                     Items,
-                    Restrictions
+                    Restrictions,
+                    Roles
             )
         }.execute()
     }
