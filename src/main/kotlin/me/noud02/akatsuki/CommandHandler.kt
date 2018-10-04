@@ -137,7 +137,7 @@ class CommandHandler {
                 restrictions.any {
                     it[Restrictions.command] == "all" || it[Restrictions.command] == cmd
                 } || Restrictions.select {
-                    Restrictions.guildId.eq(event.guild.idLong) and Restrictions.everyone.eq(true)
+                    Restrictions.guildId.eq(event.guild.idLong) and Restrictions.everyone.eq(true) and Restrictions.command.eq(cmd)
                 }.toList().isNotEmpty()
             }.execute().get()
 
