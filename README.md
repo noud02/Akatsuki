@@ -1,16 +1,12 @@
-# Akatsuki [![Discord](https://img.shields.io/discord/246729077128429568.svg?style=flat-square)](https://discord.gg/qngdWCZ) [![Travis](https://img.shields.io/travis/noud02/Akatsuki.svg?style=flat-square)](https://travis-ci.org/noud02/Akatsuki) [![Discord Bots](https://discordbots.org/api/widget/status/236829027539746817.svg)](https://discordbots.org/bot/236829027539746817)
+# Akatsuki [![Discord](https://img.shields.io/discord/246729077128429568.svg?style=flat-square)](https://discord.gg/qngdWCZ) [![Travis](https://img.shields.io/travis/Kyuubey/Akatsuki.svg?style=flat-square)](https://travis-ci.org/Kyuubey/Akatsuki) [![Discord Bots](https://discordbots.org/api/widget/status/236829027539746817.svg)](https://discordbots.org/bot/236829027539746817)
 
 A multipurpose Discord bot written in Kotlin.
-
-### Downloads
-
-You can download the latest version from my [CI](https://ci.noud02.me/viewLog.html?buildId=lastSuccessful&buildTypeId=Akatsuki_Build&tab=artifacts&guest=1)
 
 ### Compiling and running the bot
 
 ```bash
 # Clone and build
-$ git clone https://github.com/noud02/Akatsuki --recrusive && cd Akatsuki
+$ git clone https://github.com/Kyuubey/Akatsuki --recrusive && cd Akatsuki
 $ ./gradlew clean build
 
 # Config

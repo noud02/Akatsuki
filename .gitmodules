@@ -4,4 +4,4 @@
 	branch = rewrite-compat
 [submodule "backend"]
 	path = backend
-	url = https://github.com/noud02/Akatsuki-Backend
+	url = https://github.com/Kyuubey/Akatsuki-Backend.git

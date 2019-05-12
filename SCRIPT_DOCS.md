@@ -13,7 +13,7 @@ Returns `nil`
 Add a role to a member.
 
 ```lua
-discord.add_role("noud02", "awoo")
+discord.add_role("yuwui", "awoo")
 ```
 
 #### discord.remove_role(member, role)
@@ -23,7 +23,7 @@ Returns `nil`
 Remove a role from a member.
 
 ```lua
-discord.remove_role("noud02", "owner")
+discord.remove_role("yuwui", "owner")
 ```
 
 #### discord.get_user(user)
@@ -33,7 +33,7 @@ Returns `{ username, discriminator, avatar_url, nick, mention, owner, id }`
 Gets info on a user.
 
 ```lua
-local user = discord.get_user "noud02"
+local user = discord.get_user "yuwui"
 ```
 
 ### Context
@@ -43,7 +43,7 @@ local user = discord.get_user "noud02"
 Returns `{ username, discriminator, avatar_url, nick, mention, owner, id }`
 
 ```lua
-if ctx.user.username == "noud02" then
+if ctx.user.username == "yuwui" then
     ctx.send "hello master"
 end
 ```

@@ -22,7 +22,7 @@ install:
     - git clone https://github.com/docker-library/official-images.git official-images
 
 before_script:
-    - image="noud02/akatsuki"
+    - image="yuwui/akatsuki"
     - if [ -n "$TRAVIS_TAG" ]; then
       image="$image:$TRAVIS_TAG";
       fi
