@@ -30,7 +30,7 @@ script:
     - ./gradlew build
     - cp build/libs/Akatsuki.jar ./
     - docker build -f Dockerfile -t "$image" .
-    - official-images/test/run.sh "$image"
+#    - official-images/test/run.sh "$image"
 
 after_script:
     - docker inspect "$image"   
