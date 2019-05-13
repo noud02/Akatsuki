@@ -562,13 +562,13 @@ class EventListener : ListenerAdapter() {
                 val body = RequestBody.create(jsonType, JSONObject(json).toString())
 
                 if (Akatsuki.config.api.discordbots.isNotEmpty()) {
-                    Http.post("https://bots.discord.pw/api/bots/${Akatsuki.jda!!.selfUser.id}/stats", body) {
+                    Http.post("https://discord.bots.gg/api/bots/${Akatsuki.jda!!.selfUser.id}/stats", body) {
                         addHeader("Authorization", Akatsuki.config.api.discordbots)
                     }.thenAccept {
-                        logger.info("Updated stats on bots.discord.pw")
+                        logger.info("Updated stats on discord.bots.gg")
                         it.close()
                     }.thenApply {}.exceptionally {
-                        logger.error("Error while trying to update stats on bots.discord.pw", it)
+                        logger.error("Error while trying to update stats on discord.bots.gg", it)
                     }
                 }
 
@@ -592,13 +592,13 @@ class EventListener : ListenerAdapter() {
                     val body = RequestBody.create(jsonType, JSONObject(json).toString())
 
                     if (Akatsuki.config.api.discordbots.isNotEmpty()) {
-                        Http.post("https://bots.discord.pw/api/bots/${shard.selfUser.id}/stats", body) {
+                        Http.post("https://discord.bots.gg/api/bots/${shard.selfUser.id}/stats", body) {
                             addHeader("Authorization", Akatsuki.config.api.discordbots)
                         }.thenAccept {
-                            logger.info("Updated stats on bots.discord.pw")
+                            logger.info("Updated stats on discord.bots.gg")
                             it.close()
                         }.thenApply {}.exceptionally {
-                            logger.error("Error while trying to update stats on bots.discord.pw", it)
+                            logger.error("Error while trying to update stats on discord.bots.gg", it)
                         }
                     }
 

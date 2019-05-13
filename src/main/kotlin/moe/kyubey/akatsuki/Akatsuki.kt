@@ -48,7 +48,9 @@ class Akatsuki(private val config: Config) {
     init {
         Akatsuki.config = config
 
-        Sentry.init(config.api.sentry)
+        if (config.api.sentry.isNotEmpty()) {
+            Sentry.init(config.api.sentry)
+        }
 
         Database.connect(
                 "jdbc:postgresql://${config.database.host}/${config.database.name}",
