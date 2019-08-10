@@ -26,7 +26,7 @@
 package moe.kyubey.akatsuki
 
 import io.sentry.Sentry
-import lavalink.client.io.Lavalink
+import lavalink.client.io.jda.JdaLavalink
 import me.aurieh.ares.exposed.async.asyncTransaction
 import moe.kyubey.akatsuki.db.schema.*
 import moe.kyubey.akatsuki.entities.Config
@@ -80,7 +80,7 @@ class Akatsuki(private val config: Config) {
     }
 
     fun build() {
-        lavalink = Lavalink(
+        lavalink = JdaLavalink(
                 config.id,
                 1,
                 { jda!! }
@@ -100,7 +100,7 @@ class Akatsuki(private val config: Config) {
     }
 
     fun build(firstShard: Int, lastShard: Int, total: Int) {
-        lavalink = Lavalink(
+        lavalink = JdaLavalink(
                 config.id,
                 total,
                 { shardManager.getShardById(it) }
@@ -123,7 +123,7 @@ class Akatsuki(private val config: Config) {
     companion object {
         lateinit var config: Config
         lateinit var shardManager: ShardManager
-        lateinit var lavalink: Lavalink
+        lateinit var lavalink: JdaLavalink
         var jda: JDA? = null
 
         val logger = Logger(Akatsuki::class.jvmName)

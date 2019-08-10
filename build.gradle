@@ -63,7 +63,7 @@ dependencies {
     compile 'com.joestelmach:natty:0.11'
     compile 'org.luaj:luaj-jse:3.0.1'
     compile 'net.sf.trove4j:trove4j:3.0.3'
-    compile 'com.github.Frederikam:Lavalink:1ddad97bb6'
+    compile 'com.github.FredBoat:Lavalink-Client:3.0'
 }
 
 compileKotlin {
