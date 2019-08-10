@@ -90,7 +90,7 @@ class Akatsuki(private val config: Config) {
             setToken(config.token)
             addEventListener(EventListener())
             addEventListener(lavalink)
-        }.buildAsync()
+        }.build()
 
         for (node in config.lavalink) {
             lavalink.addNode(URI(node.url), node.password)

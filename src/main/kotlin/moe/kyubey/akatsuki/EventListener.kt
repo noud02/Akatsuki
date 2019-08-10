@@ -311,22 +311,23 @@ class EventListener : ListenerAdapter() {
                 val modlogChannel = event.guild.getTextChannelById(storedGuild.modlogChannel ?: return@asyncTransaction) ?: return@asyncTransaction
                 val audit = event.guild.auditLogs.type(ActionType.KICK).limit(2).firstOrNull { it.targetId == event.user.id } ?: return@asyncTransaction
                 val case = modlogs.count() + 1
+                val moderator = audit.user ?: return@asyncTransaction
 
                 val msg = modlogChannel.sendMessage("""
                 **Kick** | Case $case
                 **User**: ${event.user.name}#${event.user.discriminator} (${event.user.id})
                 **Reason**: ${audit.reason ?: "`Responsible moderator, please use the reason command to set this reason`"}
-                **Responsible moderator**: ${audit.user.name}#${audit.user.discriminator} (${audit.user.id})
+                **Responsible moderator**: ${moderator.name}#${moderator.discriminator} (${moderator.id})
             """.trimIndent()).complete()
 
                 Modlogs.insert {
                     it[messageId] = msg.idLong
-                    it[modId] = audit.user.idLong
+                    it[modId] = moderator.idLong
                     it[guildId] = event.guild.idLong
                     it[targetId] = audit.targetIdLong
                     it[caseId] = case
                     it[type] = "KICK"
-                    it[reason] = audit.reason
+                    it[reason] = audit.reason ?: ""
                 }
             }.execute()
 
@@ -354,22 +355,23 @@ class EventListener : ListenerAdapter() {
                 val modlogChannel = event.guild.getTextChannelById(storedGuild.modlogChannel ?: return@asyncTransaction) ?: return@asyncTransaction
                 val audit = event.guild.auditLogs.type(ActionType.UNBAN).first { it.targetId == event.user.id }
                 val case = modlogs.count() + 1
+                val moderator = audit.user ?: return@asyncTransaction
 
                 val msg = modlogChannel.sendMessage("""
                 **Unban** | Case $case
                 **User**: ${event.user.name}#${event.user.discriminator} (${event.user.id})
                 **Reason**: ${audit.reason ?: "`Responsible moderator, please use the reason command to set this reason`"}
-                **Responsible moderator**: ${audit.user.name}#${audit.user.discriminator} (${audit.user.id})
+                **Responsible moderator**: ${moderator.name}#${moderator.discriminator} (${moderator.id})
             """.trimIndent()).complete()
 
                 Modlogs.insert {
                     it[messageId] = msg.idLong
-                    it[modId] = audit.user.idLong
+                    it[modId] = moderator.idLong
                     it[guildId] = event.guild.idLong
                     it[targetId] = audit.targetIdLong
                     it[caseId] = case
                     it[type] = "UNBAN"
-                    it[reason] = audit.reason
+                    it[reason] = audit.reason ?: ""
                 }
             }.execute()
         }
@@ -386,22 +388,23 @@ class EventListener : ListenerAdapter() {
                 val modlogChannel = event.guild.getTextChannelById(storedGuild.modlogChannel ?: return@asyncTransaction) ?: return@asyncTransaction
                 val audit = event.guild.auditLogs.type(ActionType.BAN).first { it.targetId == event.user.id }
                 val case = modlogs.count() + 1
+                val moderator = audit.user ?: return@asyncTransaction
 
                 val msg = modlogChannel.sendMessage("""
                 **Ban** | Case $case
                 **User**: ${event.user.name}#${event.user.discriminator} (${event.user.id})
                 **Reason**: ${audit.reason ?: "`Responsible moderator, please use the reason command to set this reason`"}
-                **Responsible moderator**: ${audit.user.name}#${audit.user.discriminator} (${audit.user.id})
+                **Responsible moderator**: ${moderator.name}#${moderator.discriminator} (${moderator.id})
             """.trimIndent()).complete()
 
                 Modlogs.insert {
                     it[messageId] = msg.idLong
-                    it[modId] = audit.user.idLong
+                    it[modId] = moderator.idLong
                     it[guildId] = event.guild.idLong
                     it[targetId] = audit.targetIdLong
                     it[caseId] = case
                     it[type] = "BAN"
-                    it[reason] = audit.reason
+                    it[reason] = audit.reason ?: ""
                 }
             }.execute()
         }
@@ -425,22 +428,23 @@ class EventListener : ListenerAdapter() {
                 }
 
                 val case = modlogs.count() + 1
+                val moderator = audit.user ?: return@asyncTransaction
 
                 val msg = modlogChannel.sendMessage("""
                 **Mute** | Case $case
                 **User**: ${event.user.name}#${event.user.discriminator} (${event.user.id})
                 **Reason**: ${audit.reason ?: "`Responsible moderator, please use the reason command to set this reason`"}
-                **Responsible moderator**: ${audit.user.name}#${audit.user.discriminator} (${audit.user.id})
+                **Responsible moderator**: ${moderator.name}#${moderator.discriminator} (${moderator.id})
             """.trimIndent()).complete()
 
                 Modlogs.insert {
                     it[messageId] = msg.idLong
-                    it[modId] = audit.user.idLong
+                    it[modId] = moderator.idLong
                     it[guildId] = event.guild.idLong
                     it[targetId] = audit.targetIdLong
                     it[caseId] = case
                     it[type] = "MUTE"
-                    it[reason] = audit.reason
+                    it[reason] = audit.reason ?: ""
                 }
             }.execute()
         }
@@ -461,23 +465,25 @@ class EventListener : ListenerAdapter() {
                     Roles.guildId.eq(event.guild.idLong) and Roles.userId.eq(event.user.idLong) and Roles.roleId.eq(event.roles.first().idLong)
                 }
 
+                val moderator = audit.user ?: return@asyncTransaction
+
                 val case = modlogs.count() + 1
 
                 val msg = modlogChannel.sendMessage("""
                 **Unmute** | Case $case
                 **User**: ${event.user.name}#${event.user.discriminator} (${event.user.id})
                 **Reason**: ${audit.reason ?: "`Responsible moderator, please use the reason command to set this reason`"}
-                **Responsible moderator**: ${audit.user.name}#${audit.user.discriminator} (${audit.user.id})
+                **Responsible moderator**: ${moderator.name}#${moderator.discriminator} (${moderator.id})
             """.trimIndent()).complete()
 
                 Modlogs.insert {
                     it[messageId] = msg.idLong
-                    it[modId] = audit.user.idLong
+                    it[modId] = moderator.idLong
                     it[guildId] = event.guild.idLong
                     it[targetId] = audit.targetIdLong
                     it[caseId] = case
                     it[type] = "UNMUTE"
-                    it[reason] = audit.reason
+                    it[reason] = audit.reason ?: ""
                 }
             }.execute()
         }
