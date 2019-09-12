@@ -25,12 +25,36 @@
 
 package moe.kyubey.akatsuki.commands
 
+import io.sentry.Sentry
+import moe.kyubey.akatsuki.annotations.Argument
+import moe.kyubey.akatsuki.entities.Command
+import moe.kyubey.akatsuki.entities.Context
 import moe.kyubey.akatsuki.annotations.Load
-import moe.kyubey.akatsuki.entities.WolkCommand
+import moe.kyubey.akatsuki.utils.Wolk
 import moe.kyubey.akatsuki.utils.WolkType
+import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.Member
+import java.awt.Color
 
 @Load
-class Pat : WolkCommand() {
+@Argument("user", "user")
+class Pat : Command() {
     override val desc = "*pat* uwu"
-    override val type = WolkType.PAT
+    override val guildOnly = true
+
+    override fun run(ctx: Context) {
+        Wolk.getByType(WolkType.PAT).thenAccept { res ->
+            ctx.send(EmbedBuilder().apply {
+                val mem = ctx.args["user"] as Member
+                setTitle("${ctx.member!!.effectiveName} *pats* ${mem.effectiveName}")
+                setImage(res.url)
+                setColor(Color.CYAN)
+                setFooter("Powered by weeb.sh", null)
+            }.build())
+        }.thenApply {}.exceptionally {
+            ctx.logger.error("Error while trying to get pat image from weebsh", it)
+            ctx.sendError(it)
+            Sentry.capture(it)
+        }
+    }
 }
